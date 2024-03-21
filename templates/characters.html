@@ -1,0 +1,31 @@
+{{define "characters"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Characters</title>
+</head>
+<body>
+    <form id="tagForm" method="POST">
+        <label><input type="checkbox" name="tag[]" value="Male">Male</label>
+        <label><input type="checkbox" name="tag[]" value="Female">Female</label>
+        <label><input type="checkbox" name="tag[]" value="unknown">Unknown</label>
+        <label><input type="checkbox" name="tag[]" value="Human">Human</label>
+        <label><input type="checkbox" name="tag[]" value="Alien">Alien</label>
+        <label><input type="checkbox" name="tag[]" value="Dead">Dead</label>
+        <label><input type="checkbox" name="tag[]" value="Alive">Alive</label>
+        <label><input type="checkbox" name="tag[]" value="unknownstatus">unknownstatus</label>
+        <button onclick="submitForm()" type="button">Confirm</button>
+    </form>
+    {{range .Data}}
+    <h1>{{.Name}}</h1>
+    <p><strong>Status: </strong>{{.Status}}</p>
+    <img src="{{.Image}}" alt="Character Image"/>
+    {{end}}
+    <a href=/characters?page={{.Response.Info.Prev}}>prev</a>
+    <a href=/characters?page={{.Response.Info.Next}}>next</a>
+</body>
+<script src="static/assets/script.js"></script>
+</html>
+{{end}}
