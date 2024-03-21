@@ -37,7 +37,7 @@ type ResultCharacter struct {
 	Episode  []string  `json:"episode"`
 	URL      string    `json:"url"`
 	Created  time.Time `json:"created"`
-	Favorite bool      `json:"favorite"`
+	Favorite bool
 }
 type ResultLocation struct {
 	ID        int       `json:"id"`
@@ -60,9 +60,9 @@ type ResultEpisode struct {
 	Favorite   bool      `json:"favorite"`
 }
 type AllResults struct {
-	Characters []ResultCharacter `json:"results"`
-	Locations  []ResultLocation  `json:"results"`
-	Episodes   []ResultEpisode   `json:"results"`
+	Characters []ResultCharacter `json:"resultschar"`
+	Locations  []ResultLocation  `json:"resultsloc"`
+	Episodes   []ResultEpisode   `json:"resultsep"`
 }
 
 type ResponseCharacter struct {
@@ -148,25 +148,26 @@ func EpisodeList(link string) ([]ResultEpisode, ResponseEpisode) {
 	return results.Results, results
 }
 
-func Filterbytag(results []ResultCharacter, tags []string) []ResultCharacter {
-	var trier []ResultCharacter
+func FilterByTag(results []ResultCharacter, tags []string) []ResultCharacter {
+	filter := make([]ResultCharacter, 0)
 	addedChar := make(map[string]bool)
 
 	for _, result := range results {
+		// Check if the character matches any of the tags
 		for _, tag := range tags {
-			if result.Gender == tag && addedChar[result.Name] {
-				trier = append(trier, result)
-				addedChar[result.Gender] = true
-			}
-			if result.Species == tag && addedChar[result.Name] {
-				trier = append(trier, result)
-				addedChar[result.Species] = true
-			}
-			if result.Status == tag && addedChar[result.Name] {
-				trier = append(trier, result)
-				addedChar[result.Status] = true
+			if result.Gender == tag || result.Species == tag || result.Status == tag {
+				// Check if the character has not been added already
+				if !addedChar[result.Name] {
+					// Add the character to the filter slice
+					filter = append(filter, result)
+					// Mark the character as added
+					addedChar[result.Name] = true
+					// Break the inner loop since the character has been added
+					break
+				}
 			}
 		}
 	}
-	return trier
+
+	return filter
 }
