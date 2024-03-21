@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -47,7 +48,7 @@ type ResultLocation struct {
 	Residents []string  `json:"residents"`
 	URL       string    `json:"url"`
 	Created   time.Time `json:"created"`
-	Favorite  bool      `json:"favorite"`
+	Favorite  bool
 }
 type ResultEpisode struct {
 	ID         int       `json:"id"`
@@ -57,7 +58,7 @@ type ResultEpisode struct {
 	Characters []string  `json:"characters"`
 	URL        string    `json:"url"`
 	Created    time.Time `json:"created"`
-	Favorite   bool      `json:"favorite"`
+	Favorite   bool
 }
 type AllResults struct {
 	Characters []ResultCharacter `json:"resultschar"`
@@ -79,8 +80,11 @@ type ResponseEpisode struct {
 }
 
 type CombinedDataChar struct {
-	Response ResponseCharacter
-	Data     []ResultCharacter
+	Navigation struct {
+		PagePrev string
+		PageNext string
+	}
+	Data []ResultCharacter
 }
 type CombinedDataLoc struct {
 	Response ResponseLocation
@@ -148,26 +152,102 @@ func EpisodeList(link string) ([]ResultEpisode, ResponseEpisode) {
 	return results.Results, results
 }
 
-func FilterByTag(results []ResultCharacter, tags []string) []ResultCharacter {
+func FilterByTag(results []ResultCharacter, tag string) []ResultCharacter {
 	filter := make([]ResultCharacter, 0)
-	addedChar := make(map[string]bool)
+	//addedChar := make(map[string]bool)
 
 	for _, result := range results {
 		// Check if the character matches any of the tags
-		for _, tag := range tags {
-			if result.Gender == tag || result.Species == tag || result.Status == tag {
-				// Check if the character has not been added already
-				if !addedChar[result.Name] {
-					// Add the character to the filter slice
-					filter = append(filter, result)
-					// Mark the character as added
-					addedChar[result.Name] = true
-					// Break the inner loop since the character has been added
-					break
-				}
-			}
+		if result.Gender == tag || result.Species == tag || result.Status == tag {
+			filter = append(filter, result)
+			/* // Check if the character has not been added already
+			if !addedChar[result.Name] {
+				// Add the character to the filter slice
+				filter = append(filter, result)
+				// Mark the character as added
+				addedChar[result.Name] = true
+				// Break the inner loop since the character has been added
+				break
+			} */
 		}
 	}
 
 	return filter
+}
+
+func SearchCharacters(query string) ([]ResultCharacter, error) {
+	// Make HTTP request to the characters endpoint
+	resp, err := http.Get("https://rickandmortyapi.com/api/character")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var response ResponseCharacter
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter characters based on the query
+	var results []ResultCharacter
+	for _, character := range response.Results {
+		if strings.Contains(strings.ToLower(character.Name), strings.ToLower(query)) {
+			results = append(results, character)
+		}
+	}
+
+	return results, nil
+}
+
+// Function to search locations based on the provided query
+func SearchLocations(query string) ([]ResultLocation, error) {
+	// Make HTTP request to the locations endpoint
+	resp, err := http.Get("https://rickandmortyapi.com/api/location")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var response ResponseLocation
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter locations based on the query
+	var results []ResultLocation
+	for _, location := range response.Results {
+		if strings.Contains(strings.ToLower(location.Name), strings.ToLower(query)) {
+			results = append(results, location)
+		}
+	}
+
+	return results, nil
+}
+
+// Function to search episodes based on the provided query
+func SearchEpisodes(query string) ([]ResultEpisode, error) {
+	// Make HTTP request to the episodes endpoint
+	resp, err := http.Get("https://rickandmortyapi.com/api/episode")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var response ResponseEpisode
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter episodes based on the query
+	var results []ResultEpisode
+	for _, episode := range response.Results {
+		if strings.Contains(strings.ToLower(episode.Name), strings.ToLower(query)) {
+			results = append(results, episode)
+		}
+	}
+
+	return results, nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"rickandmortyapi/utility"
+	"strconv"
 	"text/template"
 )
 
@@ -44,24 +45,38 @@ func characterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the selected tags from the form data
-	tagstrings := r.Form["tag[]"]
+	tagstrings := r.FormValue("tag")
+	fmt.Println(tagstrings)
+	fmt.Println(r.FormValue("tag"))
+	fmt.Println(r.URL)
 
 	// Define the link for the API request
-	var link string
-	page := r.URL.Query().Get("page")
-	if page == "" {
-		link = "https://rickandmortyapi.com/api/character"
-	} else {
-		link = page
+	var ListPerso []utility.ResultCharacter
+	link := "https://rickandmortyapi.com/api/character"
+	for {
+		resPerso, res := utility.CharacterList(link)
+		ListPerso = append(ListPerso, resPerso...)
+		if res.Info.Next == "" {
+			break
+		}
+		link = res.Info.Next
 	}
-
-	// Fetch the list of characters from the API
-	data, info := utility.CharacterList(link)
 
 	// If tags were selected, filter characters based on the selected tags
-	if len(tagstrings) > 0 {
-		data = utility.FilterByTag(data, tagstrings)
+	if len(tagstrings) > 0 && tagstrings != "" {
+		ListPerso = utility.FilterByTag(ListPerso, tagstrings)
 	}
+
+	page := r.FormValue("page")
+	currentPage, errPage := strconv.Atoi(page)
+	if page == "" || errPage != nil || currentPage < 1 {
+		currentPage = 1
+	}
+	fmt.Println(currentPage)
+	if len(ListPerso) < (currentPage * 10) {
+		currentPage = 1 //remplacer par redirec page 404
+	}
+	ListPerso = ListPerso[(currentPage*10)-10 : (currentPage * 10)]
 
 	// Parse the template and execute it with the character data
 	tmpl, err := template.New("characters").ParseFiles("templates/characters.html")
@@ -70,8 +85,14 @@ func characterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dataS := utility.CombinedDataChar{
-		Response: info,
-		Data:     data,
+		Navigation: struct {
+			PagePrev string
+			PageNext string
+		}{
+			PageNext: fmt.Sprintf("/characters?page=%v&tag=%v", currentPage+1, tagstrings),
+			PagePrev: fmt.Sprintf("/characters?page=%vtag=%v", currentPage-1, tagstrings),
+		},
+		Data: ListPerso,
 	}
 	tmpl.ExecuteTemplate(w, "characters", dataS)
 }
@@ -126,9 +147,50 @@ func episodeHandler(w http.ResponseWriter, r *http.Request) {
 
 // favoritesHanfler handles requests to the "/favorites" endpoint
 func favoritesHandler(w http.ResponseWriter, r *http.Request) {
-	// Placeholder for favorites handler logic
+	tmpl, err := template.New("favorites").ParseFiles("templates/favorites.html")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	tmpl.ExecuteTemplate(w, "favorites", nil)
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse query parameter
+	query := r.URL.Query().Get("q")
 
+	// Perform search operation across all endpoints
+	characters, err := utility.SearchCharacters(query)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error searching characters: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	locations, err := utility.SearchLocations(query)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error searching locations: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	episodes, err := utility.SearchEpisodes(query)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error searching episodes: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Combine search results from all endpoints
+	searchResults := utility.AllResults{
+		Characters: characters,
+		Locations:  locations,
+		Episodes:   episodes,
+	}
+
+	// Pass search results to the template
+	tmpl, err := template.New("search").ParseFiles("templates/search.html")
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing template: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	tmpl.ExecuteTemplate(w, "search", searchResults)
 }
