@@ -8,14 +8,14 @@
 </head>
 <body>
     <form action="/characters" method="get">
-        <label><input type="checkbox" name="tag" value="Male">Male</label>
-        <label><input type="checkbox" name="tag" value="Female">Female</label>
-        <label><input type="checkbox" name="tag" value="unknown">Unknown (Gender)</label>
-        <label><input type="checkbox" name="tag" value="Human">Human</label>
-        <label><input type="checkbox" name="tag" value="Alien">Alien</label>
-        <label><input type="checkbox" name="tag" value="Dead">Dead</label>
-        <label><input type="checkbox" name="tag" value="Alive">Alive</label>
-        <label><input type="checkbox" name="tag" value="unknownstatus">Unknown (Status)</label>
+        <label><input type="radio" name="tag" value="Male">Male</label>
+        <label><input type="radio" name="tag" value="Female">Female</label>
+        <label><input type="radio" name="tag" value="unknown">Unknown (Gender)</label>
+        <label><input type="radio" name="tag" value="Human">Human</label>
+        <label><input type="radio" name="tag" value="Alien">Alien</label>
+        <label><input type="radio" name="tag" value="Dead">Dead</label>
+        <label><input type="radio" name="tag" value="Alive">Alive</label>
+        <label><input type="radio" name="tag" value="unknownstatus">Unknown (Status)</label>
         <button type="submit">Confirm</button>
     </form>
     {{range .Data}}
