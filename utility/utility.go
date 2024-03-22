@@ -87,12 +87,18 @@ type CombinedDataChar struct {
 	Data []ResultCharacter
 }
 type CombinedDataLoc struct {
-	Response ResponseLocation
-	Data     []ResultLocation
+	Navigation struct {
+		PagePrev string
+		PageNext string
+	}
+	Data []ResultLocation
 }
 type CombinedDataEp struct {
-	Response ResponseEpisode
-	Data     []ResultEpisode
+	Navigation struct {
+		PagePrev string
+		PageNext string
+	}
+	Data []ResultEpisode
 }
 
 func CharacterList(link string) ([]ResultCharacter, ResponseCharacter) {
@@ -223,34 +229,5 @@ func SearchEpisodes(query string) ([]ResultEpisode, error) {
 }
 
 // Search function to search through characters, locations, and episodes
-func Search(query string, characters []ResultCharacter, locations []ResultLocation, episodes []ResultEpisode) []interface{} {
-	var results []interface{}
-
-	// Search characters
-	for _, character := range characters {
-		if containsQuery(character.Name, query) {
-			results = append(results, character)
-		}
-	}
-
-	// Search locations
-	for _, location := range locations {
-		if containsQuery(location.Name, query) {
-			results = append(results, location)
-		}
-	}
-
-	// Search episodes
-	for _, episode := range episodes {
-		if containsQuery(episode.Name, query) {
-			results = append(results, episode)
-		}
-	}
-
-	return results
-}
-
-// Helper function to check if a string contains a query
-func containsQuery(s string, query string) bool {
-	return len(query) > 0 && len(s) > 0 && len(query) <= len(s) && s[:len(query)] == query
+func Search() {
 }

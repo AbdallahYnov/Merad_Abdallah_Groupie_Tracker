@@ -100,48 +100,121 @@ func characterHandler(w http.ResponseWriter, r *http.Request) {
 
 // locationHandler handles requests to the "/location" endpoint
 func locationHandler(w http.ResponseWriter, r *http.Request) {
-	// Placeholder for location handler logic
-	var link string
-	page := r.URL.Query().Get("page")
-	if page == "" {
-		link = "https://rickandmortyapi.com/api/location"
 
-	} else {
-		link = page
+	// Get the selected tags from the form data
+	tagstrings := r.FormValue("tag")
+	fmt.Println(tagstrings)
+	fmt.Println(r.FormValue("tag"))
+	fmt.Println(r.URL)
+
+	// Define the link for the API request
+	var ListLoc []utility.ResultLocation
+	link := "https://rickandmortyapi.com/api/location"
+	for {
+		resLoc, res := utility.LocationList(link)
+		ListLoc = append(ListLoc, resLoc...)
+		if res.Info.Next == "" {
+			break
+		}
+		link = res.Info.Next
 	}
-	data, info := utility.LocationList(link)
 
+	page := r.FormValue("page")
+	currentPage, errPage := strconv.Atoi(page)
+	if page == "" || errPage != nil || currentPage < 1 {
+		currentPage = 1
+	}
+	fmt.Println(currentPage)
+	if len(ListLoc) < (currentPage * 10) {
+		currentPage = 1 //remplacer par redirec page 404
+	}
+	ListLoc = ListLoc[(currentPage*10)-10 : (currentPage * 10)]
+
+	// Parse the template and execute it with the location data
 	tmpl, err := template.New("locations").ParseFiles("templates/locations.html")
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	dataS := utility.CombinedDataLoc{
-		Response: info,
-		Data:     data,
+		Navigation: struct {
+			PagePrev string
+			PageNext string
+		}{
+			PageNext: fmt.Sprintf("/locations?page=%v", currentPage+1),
+			PagePrev: fmt.Sprintf("/locations?page=%v", currentPage-1),
+		},
+		Data: ListLoc,
 	}
+	// tmpl.ExecuteTemplate(w, "locations", dataS)
+	// // Placeholder for location handler logic
+	// var link string
+	// page := r.URL.Query().Get("page")
+	// if page == "" {
+	// 	link = "https://rickandmortyapi.com/api/location"
+
+	// } else {
+	// 	link = page
+	// }
+	// data, info := utility.LocationList(link)
+
+	// tmpl, err := template.New("locations").ParseFiles("templates/locations.html")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// dataS := utility.CombinedDataLoc{
+	// 	Response: info,
+	// 	Data:     data,
+	// }
 	tmpl.ExecuteTemplate(w, "locations", dataS)
 }
 
 // episodeHandler handles requests to the "/episode" endpoint
 func episodeHandler(w http.ResponseWriter, r *http.Request) {
-	// Placeholder for location handler logic
-	var link string
-	page := r.URL.Query().Get("page")
-	if page == "" {
-		link = "https://rickandmortyapi.com/api/episode"
+	// Get the selected tags from the form data
+	tagstrings := r.FormValue("tag")
+	fmt.Println(tagstrings)
+	fmt.Println(r.FormValue("tag"))
+	fmt.Println(r.URL)
 
-	} else {
-		link = page
+	// Define the link for the API request
+	var ListEp []utility.ResultEpisode
+	link := "https://rickandmortyapi.com/api/episode"
+	for {
+		resEp, res := utility.EpisodeList(link)
+		ListEp = append(ListEp, resEp...)
+		if res.Info.Next == "" {
+			break
+		}
+		link = res.Info.Next
 	}
-	data, info := utility.EpisodeList(link)
 
+	page := r.FormValue("page")
+	currentPage, errPage := strconv.Atoi(page)
+	if page == "" || errPage != nil || currentPage < 1 {
+		currentPage = 1
+	}
+	fmt.Println(currentPage)
+	if len(ListEp) < (currentPage * 10) {
+		currentPage = 1 //remplacer par redirec page 404
+	}
+	ListEp = ListEp[(currentPage*10)-10 : (currentPage * 10)]
+
+	// Parse the template and execute it with the episode data
 	tmpl, err := template.New("episodes").ParseFiles("templates/episodes.html")
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	dataS := utility.CombinedDataEp{
-		Response: info,
-		Data:     data,
+		Navigation: struct {
+			PagePrev string
+			PageNext string
+		}{
+			PageNext: fmt.Sprintf("/episodes?page=%v", currentPage+1),
+			PagePrev: fmt.Sprintf("/episodes?page=%v", currentPage-1),
+		},
+		Data: ListEp,
 	}
 	tmpl.ExecuteTemplate(w, "episodes", dataS)
 }
@@ -157,25 +230,16 @@ func favoritesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the search query from the request parameters
+
 	query := r.URL.Query().Get("query")
+	fmt.Println(query)
 
-	// Fetch data from character, location, and episode endpoints
-	characters, _ := utility.CharacterList("https://rickandmortyapi.com/api/character")
-	locations, _ := utility.LocationList("https://rickandmortyapi.com/api/location")
-	episodes, _ := utility.EpisodeList("https://rickandmortyapi.com/api/episode")
+	tmpl, err := template.New("search").ParseFiles("templates/search.html")
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	// Search characters, locations, and episodes for the query
-	searchResults := utility.Search(query, characters, locations, episodes)
-
-	// Render the search results using a template (you need to implement this part)
-
-	// For now, just print the search results to the console
-	fmt.Println("Search results:", searchResults)
-
-	// Respond to the client
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Search results generated. Check the server logs for details."))
+	tmpl.ExecuteTemplate(w, "search", nil)
 }
 
 func errorHandler(w http.ResponseWriter, r *http.Request) {
