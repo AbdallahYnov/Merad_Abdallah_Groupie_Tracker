@@ -16,6 +16,7 @@ func InitServer() {
 	http.HandleFunc("/episodes", episodeHandler)
 	http.HandleFunc("/favorites", favoritesHandler)
 	http.HandleFunc("/search", searchHandler)
+	http.HandleFunc("/error", errorHandler)
 
 	// Serve static files from the "static" directory
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -156,41 +157,32 @@ func favoritesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse query parameter
-	query := r.URL.Query().Get("q")
+	// Extract the search query from the request parameters
+	query := r.URL.Query().Get("query")
 
-	// Perform search operation across all endpoints
-	characters, err := utility.SearchCharacters(query)
+	// Fetch data from character, location, and episode endpoints
+	characters, _ := utility.CharacterList("https://rickandmortyapi.com/api/character")
+	locations, _ := utility.LocationList("https://rickandmortyapi.com/api/location")
+	episodes, _ := utility.EpisodeList("https://rickandmortyapi.com/api/episode")
+
+	// Search characters, locations, and episodes for the query
+	searchResults := utility.Search(query, characters, locations, episodes)
+
+	// Render the search results using a template (you need to implement this part)
+
+	// For now, just print the search results to the console
+	fmt.Println("Search results:", searchResults)
+
+	// Respond to the client
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Search results generated. Check the server logs for details."))
+}
+
+func errorHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.New("error").ParseFiles("templates/error.html")
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error searching characters: %v", err), http.StatusInternalServerError)
-		return
+		fmt.Println(err)
 	}
 
-	locations, err := utility.SearchLocations(query)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error searching locations: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	episodes, err := utility.SearchEpisodes(query)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error searching episodes: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Combine search results from all endpoints
-	searchResults := utility.AllResults{
-		Characters: characters,
-		Locations:  locations,
-		Episodes:   episodes,
-	}
-
-	// Pass search results to the template
-	tmpl, err := template.New("search").ParseFiles("templates/search.html")
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error parsing template: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	tmpl.ExecuteTemplate(w, "search", searchResults)
+	tmpl.ExecuteTemplate(w, "error", nil)
 }

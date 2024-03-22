@@ -176,22 +176,12 @@ func FilterByTag(results []ResultCharacter, tag string) []ResultCharacter {
 }
 
 func SearchCharacters(query string) ([]ResultCharacter, error) {
-	// Make HTTP request to the characters endpoint
-	resp, err := http.Get("https://rickandmortyapi.com/api/character")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	// Fetch the list of characters
+	characters, _ := CharacterList("https://rickandmortyapi.com/api/character")
 
-	var response ResponseCharacter
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter characters based on the query
+	// Perform search based on the query
 	var results []ResultCharacter
-	for _, character := range response.Results {
+	for _, character := range characters {
 		if strings.Contains(strings.ToLower(character.Name), strings.ToLower(query)) {
 			results = append(results, character)
 		}
@@ -202,22 +192,12 @@ func SearchCharacters(query string) ([]ResultCharacter, error) {
 
 // Function to search locations based on the provided query
 func SearchLocations(query string) ([]ResultLocation, error) {
-	// Make HTTP request to the locations endpoint
-	resp, err := http.Get("https://rickandmortyapi.com/api/location")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	// Fetch the list of locations
+	locations, _ := LocationList("https://rickandmortyapi.com/api/location")
 
-	var response ResponseLocation
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter locations based on the query
+	// Perform search based on the query
 	var results []ResultLocation
-	for _, location := range response.Results {
+	for _, location := range locations {
 		if strings.Contains(strings.ToLower(location.Name), strings.ToLower(query)) {
 			results = append(results, location)
 		}
@@ -228,26 +208,49 @@ func SearchLocations(query string) ([]ResultLocation, error) {
 
 // Function to search episodes based on the provided query
 func SearchEpisodes(query string) ([]ResultEpisode, error) {
-	// Make HTTP request to the episodes endpoint
-	resp, err := http.Get("https://rickandmortyapi.com/api/episode")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	// Fetch the list of episodes
+	episodes, _ := EpisodeList("https://rickandmortyapi.com/api/episode")
 
-	var response ResponseEpisode
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter episodes based on the query
+	// Perform search based on the query
 	var results []ResultEpisode
-	for _, episode := range response.Results {
+	for _, episode := range episodes {
 		if strings.Contains(strings.ToLower(episode.Name), strings.ToLower(query)) {
 			results = append(results, episode)
 		}
 	}
 
 	return results, nil
+}
+
+// Search function to search through characters, locations, and episodes
+func Search(query string, characters []ResultCharacter, locations []ResultLocation, episodes []ResultEpisode) []interface{} {
+	var results []interface{}
+
+	// Search characters
+	for _, character := range characters {
+		if containsQuery(character.Name, query) {
+			results = append(results, character)
+		}
+	}
+
+	// Search locations
+	for _, location := range locations {
+		if containsQuery(location.Name, query) {
+			results = append(results, location)
+		}
+	}
+
+	// Search episodes
+	for _, episode := range episodes {
+		if containsQuery(episode.Name, query) {
+			results = append(results, episode)
+		}
+	}
+
+	return results
+}
+
+// Helper function to check if a string contains a query
+func containsQuery(s string, query string) bool {
+	return len(query) > 0 && len(s) > 0 && len(query) <= len(s) && s[:len(query)] == query
 }
