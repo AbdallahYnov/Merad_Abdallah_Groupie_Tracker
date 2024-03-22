@@ -10,10 +10,10 @@
     {{range .Data}}
     <h1>{{.Name}}</h1>
     <p><strong>Status: </strong>{{.Status}}</p>
-    <img src="{{.Image}}" alt="Episodes Image"/>
+    <img src="{{.Image}}" alt="Episode Image" />
     {{end}}
-    <a href=/episodes?page={{.Response.Info.Prev}}>prev</a>
-    <a href=/episodes?page={{.Response.Info.Next}}>next</a>
+    <a href="{{.Navigation.PagePrev}}">prev</a>
+    <a href="{{.Navigation.PageNext}}">next</a>
 </body>
 </html>
 {{end}}

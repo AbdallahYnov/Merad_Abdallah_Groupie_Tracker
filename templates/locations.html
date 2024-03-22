@@ -1,19 +1,33 @@
 {{define "locations"}}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Locations</title>
 </head>
+
 <body>
+    <form action="/locations" method="get">
+        <label><input type="radio" name="tog" value="Planet">Planet</label>
+        <label><input type="radio" name="tog" value="Cluster">Cluster</label>
+        <label><input type="radio" name="tog" value="Space station">Space station</label>
+        <label><input type="radio" name="tog" value="Microverse">Microverse</label>
+        <label><input type="radio" name="tog" value="TV">TV</label>
+        <label><input type="radio" name="tog" value="Resort">Resort</label>
+        <label><input type="radio" name="tog" value="Fantasy town">Fantasy town</label>
+        <label><input type="radio" name="tog" value="Dream">Dream</label>
+        <button type="submit">Confirm</button>
+    </form>
     {{range .Data}}
     <h1>{{.Name}}</h1>
     <p><strong>Status: </strong>{{.Status}}</p>
-    <img src="{{.Image}}" alt="Location Image"/>
+    <img src="{{.Image}}" alt="Location Image" />
     {{end}}
-    <a href=/locations?page={{.Response.Info.Prev}}>prev</a>
-    <a href=/locations?page={{.Response.Info.Next}}>next</a>
+    <a href="{{.Navigation.PagePrev}}">prev</a>
+    <a href="{{.Navigation.PageNext}}">next</a>
 </body>
+
 </html>
 {{end}}

@@ -180,6 +180,15 @@ func FilterByTag(results []ResultCharacter, tag string) []ResultCharacter {
 
 	return filter
 }
+func FilterByTog(results []ResultLocation, tog string) []ResultLocation {
+	filter := make([]ResultLocation, 0)
+	for _, result := range results {
+		if result.Type == tog {
+			filter = append(filter, result)
+		}
+	}
+	return filter
+}
 
 func SearchCharacters(query string) ([]ResultCharacter, error) {
 	// Fetch the list of characters

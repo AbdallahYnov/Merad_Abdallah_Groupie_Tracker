@@ -100,13 +100,17 @@ func characterHandler(w http.ResponseWriter, r *http.Request) {
 
 // locationHandler handles requests to the "/location" endpoint
 func locationHandler(w http.ResponseWriter, r *http.Request) {
-
+	// Parse the form data
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	// Get the selected tags from the form data
-	tagstrings := r.FormValue("tag")
-	fmt.Println(tagstrings)
-	fmt.Println(r.FormValue("tag"))
+	togstrings := r.FormValue("tog")
+	fmt.Println(togstrings)
+	fmt.Println(r.FormValue("tog"))
 	fmt.Println(r.URL)
-
 	// Define the link for the API request
 	var ListLoc []utility.ResultLocation
 	link := "https://rickandmortyapi.com/api/location"
@@ -117,6 +121,10 @@ func locationHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		link = res.Info.Next
+	}
+	// If tags were selected, filter characters based on the selected tags
+	if len(togstrings) > 0 && togstrings != "" {
+		ListLoc = utility.FilterByTog(ListLoc, togstrings)
 	}
 
 	page := r.FormValue("page")
@@ -141,8 +149,8 @@ func locationHandler(w http.ResponseWriter, r *http.Request) {
 			PagePrev string
 			PageNext string
 		}{
-			PageNext: fmt.Sprintf("/locations?page=%v", currentPage+1),
-			PagePrev: fmt.Sprintf("/locations?page=%v", currentPage-1),
+			PageNext: fmt.Sprintf("/locations?page=%vtog=%v", currentPage+1, togstrings),
+			PagePrev: fmt.Sprintf("/locations?page=%vtog=%v", currentPage-1, togstrings),
 		},
 		Data: ListLoc,
 	}
