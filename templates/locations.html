@@ -22,8 +22,6 @@
     </form>
     {{range .Data}}
     <h1>{{.Name}}</h1>
-    <p><strong>Status: </strong>{{.Status}}</p>
-    <img src="{{.Image}}" alt="Location Image" />
     {{end}}
     <a href="{{.Navigation.PagePrev}}">prev</a>
     <a href="{{.Navigation.PageNext}}">next</a>

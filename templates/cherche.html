@@ -1,0 +1,26 @@
+{{define "cherche"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherche Results</title>
+</head>
+
+<body>
+    <h1>Cherche Results</h1>
+    <form action="/cherche" method="get">
+        <input type="text" name="query" placeholder="Enter your cherche query...">
+        <button type="submit">Cherche</button>
+    </form>
+    <div id="cherche-results">
+        {{range .Results}}
+            <p>{{.Name}}</p>
+        {{end}}
+    </div>
+</body>
+
+</html>
+
+{{end}}

@@ -238,5 +238,7 @@ func SearchEpisodes(query string) ([]ResultEpisode, error) {
 }
 
 // Search function to search through characters, locations, and episodes
-func Search() {
-}
+// func Search(query string) (ResultCharacter, error) {
+// 	/*recherche
+// 	characters, err1 := SearchCharacters(query)*/
+// }

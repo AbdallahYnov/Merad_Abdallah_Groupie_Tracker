@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"rickandmortyapi/utility"
 	"strconv"
+	"strings"
 	"text/template"
 )
 
@@ -17,6 +18,7 @@ func InitServer() {
 	http.HandleFunc("/favorites", favoritesHandler)
 	http.HandleFunc("/search", searchHandler)
 	http.HandleFunc("/error", errorHandler)
+	http.HandleFunc("/cherche", chercheHandler)
 
 	// Serve static files from the "static" directory
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -91,7 +93,7 @@ func characterHandler(w http.ResponseWriter, r *http.Request) {
 			PageNext string
 		}{
 			PageNext: fmt.Sprintf("/characters?page=%v&tag=%v", currentPage+1, tagstrings),
-			PagePrev: fmt.Sprintf("/characters?page=%vtag=%v", currentPage-1, tagstrings),
+			PagePrev: fmt.Sprintf("/characters?page=%v&tag=%v", currentPage-1, tagstrings),
 		},
 		Data: ListPerso,
 	}
@@ -149,8 +151,8 @@ func locationHandler(w http.ResponseWriter, r *http.Request) {
 			PagePrev string
 			PageNext string
 		}{
-			PageNext: fmt.Sprintf("/locations?page=%vtog=%v", currentPage+1, togstrings),
-			PagePrev: fmt.Sprintf("/locations?page=%vtog=%v", currentPage-1, togstrings),
+			PageNext: fmt.Sprintf("/locations?page=%v&tog=%v", currentPage+1, togstrings),
+			PagePrev: fmt.Sprintf("/locations?page=%v&tog=%v", currentPage-1, togstrings),
 		},
 		Data: ListLoc,
 	}
@@ -248,6 +250,55 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.ExecuteTemplate(w, "search", nil)
+}
+
+func chercheHandler(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the search query parameter from the request URL
+	cherche := r.URL.Query().Get("cherche")
+	fmt.Println("Search query:", cherche)
+
+	// Fetch character data from the Rick and Morty API
+	characters, response := utility.CharacterList("https://rickandmortyapi.com/api/character")
+	if len(response.Results) == 0 {
+		fmt.Println("Error fetching character data")
+		http.Error(w, "Failed to fetch character data", http.StatusInternalServerError)
+		return
+	}
+
+	// Initialize a slice to store search results
+	var searchResults []utility.ResultCharacter
+
+	// Iterate over each character in the fetched data
+	for _, character := range characters {
+		// Check if the character's name or other relevant field contains the search query
+		if strings.Contains(character.Name, cherche) {
+			// If it does, add the character to the search results
+			searchResults = append(searchResults, character)
+		}
+	}
+
+	// Log the number of search results found
+	fmt.Println("Search results found:", len(searchResults))
+
+	// Parse the "cherche" template file
+	tmpl, err := template.ParseFiles("templates/cherche.html")
+	if err != nil {
+		fmt.Println("Error parsing template:", err)
+		http.Error(w, "Failed to parse template", http.StatusInternalServerError)
+		return
+	}
+
+	// Execute the "cherche" template with the search results
+	err = tmpl.Execute(w, struct {
+		Results []utility.ResultCharacter
+	}{
+		Results: searchResults,
+	})
+	if err != nil {
+		fmt.Println("Error executing template:", err)
+		http.Error(w, "Failed to render search results", http.StatusInternalServerError)
+		return
+	}
 }
 
 func errorHandler(w http.ResponseWriter, r *http.Request) {
