@@ -254,7 +254,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 func chercheHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the search query parameter from the request URL
-	cherche := r.URL.Query().Get("cherche")
+	cherche := r.FormValue("query")
 	fmt.Println("Search query:", cherche)
 
 	// Fetch character data from the Rick and Morty API
@@ -289,16 +289,7 @@ func chercheHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the "cherche" template with the search results
-	err = tmpl.Execute(w, struct {
-		Results []utility.ResultCharacter
-	}{
-		Results: searchResults,
-	})
-	if err != nil {
-		fmt.Println("Error executing template:", err)
-		http.Error(w, "Failed to render search results", http.StatusInternalServerError)
-		return
-	}
+	tmpl.ExecuteTemplate(w, "cherche", searchResults)
 }
 
 func errorHandler(w http.ResponseWriter, r *http.Request) {

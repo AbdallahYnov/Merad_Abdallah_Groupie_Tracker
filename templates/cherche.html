@@ -11,11 +11,11 @@
 <body>
     <h1>Cherche Results</h1>
     <form action="/cherche" method="get">
-        <input type="text" name="query" placeholder="Enter your cherche query...">
-        <button type="submit">Cherche</button>
+        <input type="text" name="query" placeholder="Enter your Search query...">
+        <button type="submit">Search</button>
     </form>
     <div id="cherche-results">
-        {{range .Results}}
+        {{range .}}
             <p>{{.Name}}</p>
         {{end}}
     </div>
